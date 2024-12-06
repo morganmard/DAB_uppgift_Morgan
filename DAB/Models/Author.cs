@@ -5,5 +5,5 @@ public class Author
         public int AuthorID { get; set; }
         public string? Name { get; set; }
 
-        public ICollection<Credit> Credits { get; } = [];
+        public virtual ICollection<Credit> Credits { get; set; } = [];
 }

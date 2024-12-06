@@ -9,35 +9,34 @@ class AddData
         public static void Run()
         {
                 Console.Clear();
-                const string m = "\nAdd a book by specifying 'Title, Year, Author1, Author2, etc' (Q to go back)";
+
+                /* Our string-array to save Title and authors */
+                string[]? output = [];
+                int yearPublished = 0;
+
 
                 var input = "";
-                string[]? output = [];
-                var errorString = "";
-                int year = 0;
-
                 while (input is not ("Q" or "q"))
                 {
-                        /* Print possible parsing-error from pervious loop-iteration (prints nothing if it's the first iteration) */
-                        Console.Write(errorString);
-
-                        /* Our standard (and for the time only) error message */
-                        errorString = "Format Error";
-
                         /* Print the menu/help */
-                        Console.WriteLine(m);
-
+                        Console.WriteLine("\nAdd a book by specifying 'Title, Year, Author1, Author2, etc' (Q to go back)");
 
                         input = Console.ReadLine();
+
+                        /* Split the input into segments */
                         output = input.Split(',');
 
-                        /* Check the length of the splitted-input */
+                        /* Check the length of the splitted-input to make sure it has atleast all the 3 mandatory fields (leaving up to 17 extra authors) */
                         if (output.Length < 3 || output.Length > 20) continue;
 
 
                         /* Validate the input */
+
+                        /* Checks for empty title*/
                         var validTitle = output[0].Trim() is not "";
-                        var validYear = int.TryParse(output[1], out year);
+
+                        /* Check to make sure the year is a valid integer (saving the output in 'yearPublished') */
+                        var validYear = int.TryParse(output[1], out yearPublished);
 
 
                         /* Validate the authors (rest of the input) */
@@ -51,46 +50,54 @@ class AddData
                                 }
                         }
 
-                        /* Print errro and try again if any input is invalid */
                         if (!validAuthors || !validTitle || !validYear) continue;
 
+                        /* Break out of the loop if all the input is sucessfully validated */
                         break;
                 }
 
-                /* At this point all the input is validate, the title is stored in output[0], the year in 'year' and the author(s) in output index 2 and higher */
-
+                /* At this point the title is stored in output[0], the year in 'yearPublished' and the author(s) in output index 2 and higher */
 
                 using var context = new AppDbContext();
 
-                context.Database.EnsureCreated();
-
+                /* Start a transaction */
                 var transaction = context.Database.BeginTransaction();
                 try
                 {
                         var book = new Book
                         {
                                 Title = output[0].Trim(),
-                                YearPublished = year
+                                YearPublished = yearPublished,
+                                Loan = null
                         };
-
-                        var author = new Author
-                        {
-                                Name = output[2].Trim()
-
-                        };
-
-                        var Credit = new Credit // fix
-                        {
-                                Book = book,
-                                Author = author
-                        };
-
                         context.Books.Add(book);
-                        context.Authors.Add(author);
-                        context.Credits.Add(Credit);
+
+                        /* Extract rest of the authors and add them (if they don't already exists */
+                        for (int i = 0; i < output.Length; ++i)
+                        {
+                                var author = new Author
+                                {
+                                        Name = output[i + 2].Trim()
+
+                                };
+                                context.Authors.Add(author); // is unique
+
+                                var Credit = new Credit
+                                {
+                                        Book = book,
+                                        Author = author
+                                };
+                                context.Credits.Add(Credit);
+
+                                /* After creating a 'bridge' (our credit) we add it to the book and author to make a relation */
+                                book.Credits.Add(Credit);
+                                author.Credits.Add(Credit);
+                        }
 
                         context.SaveChanges();
                         transaction.Commit();
+
+                        Console.WriteLine("Book added");
                 }
                 catch (Exception ex)
                 {

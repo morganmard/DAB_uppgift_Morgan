@@ -10,6 +10,7 @@ public class AppDbContext : DbContext
         public DbSet<Author> Authors { get; set; }
         public DbSet<Credit> Credits { get; set; }
         public DbSet<Loan> Loans { get; set; }
+
         public DbSet<LoanHistory> LoanHistories { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -20,21 +21,26 @@ public class AppDbContext : DbContext
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
                 modelBuilder.Entity<Book>()
-                        .HasMany(e => e.Credits)
-                        .WithOne(e => e.Book)
-                        .HasForeignKey(e => e.BookID)
+                        .HasMany(b => b.Credits)
+                        .WithOne(c => c.Book)
+                        .HasForeignKey(c => c.BookID)
                         .IsRequired();
 
+                /* Make sure that Author's name is unique */
                 modelBuilder.Entity<Author>()
-                        .HasMany(e => e.Credits)
-                        .WithOne(e => e.Author)
-                        .HasForeignKey(e => e.AuthorID)
+                        .HasIndex(a => a.Name)
+                        .IsUnique();
+
+                modelBuilder.Entity<Author>()
+                        .HasMany(a => a.Credits)
+                        .WithOne(c => c.Author)
+                        .HasForeignKey(c => c.AuthorID)
                         .IsRequired();
 
                 modelBuilder.Entity<Loan>()
-                        .HasOne(e => e.Book)
-                        .WithOne(e => e.Loan)
-                        .HasForeignKey<Loan>(e => e.BookID)
+                        .HasOne(l => l.Book)
+                        .WithOne(b => b.Loan)
+                        .HasForeignKey<Loan>(l => l.BookID)
                         .IsRequired();
         }
 }
