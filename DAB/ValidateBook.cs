@@ -1,11 +1,12 @@
 namespace DAB;
 class ValidateBook
 {
-        public static string[] validate(out int yearPublished)
+        public static string[] validate(out int yearPublished, out bool quit)
         {
                 string[] output = [];
                 var input = "";
                 yearPublished = 0;
+                quit = false;
 
                 while (input is not ("Q" or "q"))
                 {
@@ -45,6 +46,11 @@ class ValidateBook
 
                         /* Break out of the loop if all the input is sucessfully validated */
                         break;
+                }
+
+                if (input is "Q" or "q")
+                {
+                        quit = true;
                 }
 
                 return output;

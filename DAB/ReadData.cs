@@ -35,7 +35,7 @@ class ReadData
                                 Console.Write($"{b.Credits[i].Author.Name}, ");
                         }
 
-                        Console.WriteLine("\n is {0}", b.Loan != null ? $"not available but should be back at {b.Loan.DueDate}" : "available");
+                        Console.WriteLine(" is {0}", b.Loan != null ? $"not available but should be back at {b.Loan.DueDate}" : "available");
                 });
         }
 }

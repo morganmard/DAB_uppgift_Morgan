@@ -9,6 +9,7 @@ class Checkout
 
         public static void Run()
         {
+                Console.Clear();
                 using var context = new AppDbContext();
 
                 /* Load all books and loans */
@@ -28,25 +29,26 @@ class Checkout
                         input = Console.ReadLine().Trim(); ;
 
                         /* Check against empty input */
-                        done = string.IsNullOrEmpty(input);
+                        done = !string.IsNullOrEmpty(input);
                 }
 
-                books.ForEach(b =>
+                foreach (var book in books)
                 {
-                        if (b.Title == input)
+                        if (book.Title == input)
                         {
                                 /* Check if the book is available */
-                                if (b.Loan == null)
+                                if (book.Loan == null)
                                 {
                                         var loan = new Loan
                                         {
-                                                Book = b,
+                                                Book = book,
                                                 LoanDate = DateTime.Today,
                                                 DueDate = DateTime.Today.AddMonths(1)
                                         };
                                         context.Loans.Add(loan);
+
                                         /* Mark the book as unavilable for next customer */
-                                        b.Loan = loan;
+                                        book.Loan = loan;
 
                                         context.SaveChanges();
                                         Console.WriteLine("Book checked out sucessfully");
@@ -56,9 +58,8 @@ class Checkout
                                 }
 
                         }
-                });
+                }
 
                 Console.WriteLine("Could not checkout book");
         }
-}
 }

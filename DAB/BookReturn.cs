@@ -1,16 +1,18 @@
 namespace DAB;
 
 using DAB.Data;
+using DAB.Models;
 using Microsoft.EntityFrameworkCore;
 
 class BookReturn
 {
         public static void Run()
         {
+                Console.Clear();
                 using var context = new AppDbContext();
 
-                /* Load all loans and their associated book */
-                var loans = context.Loans.Include(l => l.Book).ToList();
+                /* Load all loans and their associated book (and it's history) */
+                var loans = context.Loans.Include(l => l.Book).ThenInclude(b => b.LoanHistories).ToList();
                 if (loans.Count < 1)
                 {
                         Console.WriteLine("No books on loan");
@@ -25,23 +27,33 @@ class BookReturn
                         input = Console.ReadLine().Trim();
 
                         /* Check against empty input */
-                        done = string.IsNullOrEmpty(input);
+                        done = !string.IsNullOrEmpty(input);
                 }
 
-                loans.ForEach(l =>
+                foreach (var loan in loans)
                 {
-                        if (input == l.Book.Title)
+                        if (input == loan.Book.Title)
                         {
+                                /* Update the history */
+                                var lh = new LoanHistory
+                                {
+                                        Book = loan.Book,
+                                        LoanDate = loan.LoanDate,
+                                        ReturnDate = DateTime.Today
+                                };
+                                loan.Book.LoanHistories.Add(lh);
+
                                 /* Mark the book as available */
-                                l.Book.Loan = null;
+                                loan.Book.Loan = null;
 
                                 /* Remove the loan-entry */
-                                context.Loans.Remove(l);
+                                context.Loans.Remove(loan);
 
                                 Console.WriteLine("Book was returned");
+                                context.SaveChanges();
                                 return;
                         }
-                });
+                }
                 Console.WriteLine("Book could not be returned");
         }
 }

@@ -12,5 +12,7 @@ public class Book
         /* 'Loan?' means it can be null */
         public Loan? Loan { get; set; }
 
+        public virtual required List<LoanHistory> LoanHistories { get; set; }
+
         public virtual required List<Credit> Credits { get; set; }
 }

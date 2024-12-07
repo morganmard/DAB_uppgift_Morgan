@@ -7,6 +7,7 @@ class BookRemove
         public static void Run()
         {
 
+                Console.Clear();
                 using var context = new AppDbContext();
 
                 /* Load all books with credits and loan */
@@ -26,7 +27,7 @@ class BookRemove
                         input = Console.ReadLine().Trim(); ;
 
                         /* Check against empty input */
-                        done = string.IsNullOrEmpty(input);
+                        done = !string.IsNullOrEmpty(input);
                 }
 
                 books.ForEach(b =>
@@ -43,6 +44,7 @@ class BookRemove
                                 }
                                 context.Books.Remove(b);
                                 Console.WriteLine("Book removed sucessfully");
+                                context.SaveChanges();
                                 return;
                         }
                 });
