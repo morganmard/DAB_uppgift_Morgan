@@ -7,6 +7,16 @@ class BookReturn
 {
         public static void Run()
         {
+                using var context = new AppDbContext();
+
+                /* Load all loans and their associated book */
+                var loans = context.Loans.Include(l => l.Book).ToList();
+                if (loans.Count < 1)
+                {
+                        Console.WriteLine("No books on loan");
+                        return;
+                }
+
                 bool done = false;
                 var input = "";
                 while (!done)
@@ -18,25 +28,20 @@ class BookReturn
                         done = string.IsNullOrEmpty(input);
                 }
 
-                using var context = new AppDbContext();
-
-                var loans = context.Loans
-                        .Include(l => l.Book)
-                        .ToList();
-
-                if (loans.Count > 0)
+                loans.ForEach(l =>
                 {
-                        foreach (var loan in loans)
+                        if (input == l.Book.Title)
                         {
-                                if (input == loan.Book.Title)
-                                {
-                                        loan.Book.Loan = null;
-                                        context.Remove(loan);
-                                        Console.WriteLine("Book was returned");
-                                        return;
-                                }
+                                /* Mark the book as available */
+                                l.Book.Loan = null;
+
+                                /* Remove the loan-entry */
+                                context.Loans.Remove(l);
+
+                                Console.WriteLine("Book was returned");
+                                return;
                         }
-                }
+                });
                 Console.WriteLine("Book could not be returned");
         }
 }

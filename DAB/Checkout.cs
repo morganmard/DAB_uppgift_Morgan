@@ -9,6 +9,17 @@ class Checkout
 
         public static void Run()
         {
+                using var context = new AppDbContext();
+
+                /* Load all books and loans */
+                var books = context.Books.Include(b => b.Loan).ToList();
+
+                if (books.Count < 1)
+                {
+                        Console.WriteLine("Library is empty");
+                        return;
+                }
+
                 bool done = false;
                 var input = "";
                 while (!done)
@@ -20,43 +31,34 @@ class Checkout
                         done = string.IsNullOrEmpty(input);
                 }
 
-                using var context = new AppDbContext();
-
-                /* Load all books and loans */
-                var books = context.Books
-                                .Include(b => b.Loan)
-                                .ToList();
-
-                if (books.Count > 0)
+                books.ForEach(b =>
                 {
-                        foreach (var book in books)
+                        if (b.Title == input)
                         {
-                                if (book.Title == input)
+                                /* Check if the book is available */
+                                if (b.Loan == null)
                                 {
-                                        /* Make sure the book is available */
-                                        if (book.Loan == null)
+                                        var loan = new Loan
                                         {
-                                                var loan = new Loan
-                                                {
-                                                        Book = book,
-                                                        LoanDate = DateTime.Today,
-                                                        DueDate = DateTime.Today.AddMonths(1)
-                                                };
+                                                Book = b,
+                                                LoanDate = DateTime.Today,
+                                                DueDate = DateTime.Today.AddMonths(1)
+                                        };
+                                        context.Loans.Add(loan);
+                                        /* Mark the book as unavilable for next customer */
+                                        b.Loan = loan;
 
-                                                context.Loans.Add(loan);
+                                        context.SaveChanges();
+                                        Console.WriteLine("Book checked out sucessfully");
 
-                                                /* Mark the book as loaned out */
-                                                book.Loan = loan;
-
-                                                context.SaveChanges();
-
-                                                Console.WriteLine("Book checked out sucessfully");
-                                                return;
-                                        }
-                                        break;
+                                        /* Early return to skip the error message below */
+                                        return;
                                 }
+
                         }
-                }
+                });
+
                 Console.WriteLine("Could not checkout book");
         }
+}
 }

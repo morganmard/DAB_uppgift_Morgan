@@ -26,7 +26,12 @@ public class AppDbContext : DbContext
                         .HasForeignKey(c => c.BookID)
                         .IsRequired();
 
-                /* Make sure that Author's name is unique */
+                /* Make sure that Title is unique and create a index for it */
+                modelBuilder.Entity<Book>()
+                        .HasIndex(b => b.Title)
+                        .IsUnique();
+
+                /* Make sure that Author's name is unique and create a index for it */
                 modelBuilder.Entity<Author>()
                         .HasIndex(a => a.Name)
                         .IsUnique();

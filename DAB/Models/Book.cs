@@ -3,10 +3,14 @@ namespace DAB.Models;
 public class Book
 {
         public int BookID { get; set; }
-        public string Title { get; set; }
-        public int YearPublished { get; set; }
 
+        /* required to make sure they are not empty / null */
+
+        public required string Title { get; set; } = "";
+        public required int YearPublished { get; set; }
+
+        /* 'Loan?' means it can be null */
         public Loan? Loan { get; set; }
 
-        public virtual ICollection<Credit> Credits { get; set; } = [];
+        public virtual required List<Credit> Credits { get; set; }
 }

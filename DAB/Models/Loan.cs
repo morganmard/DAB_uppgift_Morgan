@@ -4,9 +4,11 @@ public class Loan
 {
         public int LoanID { get; set; }
 
-        public int BookID { get; set; }
-        public Book Book { get; set; }
+        /* required to make sure they are not empty / null */
 
-        public DateTime LoanDate { get; set; }
-        public DateTime DueDate { get; set; }
+        public int BookID { get; set; }
+        public required Book Book { get; set; }
+
+        public required DateTime LoanDate { get; set; }
+        public required DateTime DueDate { get; set; }
 }
